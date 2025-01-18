@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SelfQuest</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom Styles */
+    body {
+      background-color: #0f172a;
+      color: #ffffff;
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    body.light-mode {
+      background-color: #f3f4f6;
+      color: #000000;
+    }
+    .level-bar div, .skill-bar div {
+      width: 10%;
+      height: 20px;
+      background-color: #334155;
+      margin-right: 2px;
+      border: 1px solid #475569;
+    }
+    .level-bar div.filled, .skill-bar div.filled {
+      background-color: #3b82f6;
+    }
+    .light-mode .level-bar div, .light-mode .skill-bar div {
+      background-color: #e5e7eb;
+      border-color: #d1d5db;
+    }
+    .light-mode .level-bar div.filled, .light-mode .skill-bar div.filled {
+      background-color: #2563eb;
+    }
+    .page {
+      display: none;
+    }
+    .page.active {
+      display: block;
+    }
+    .completed {
+      text-decoration: line-through;
+      color: #6b7280;
+    }
+    .header-gradient {
+      background: linear-gradient(90deg, #1e293b, #334155);
+    }
+    .card-bg {
+      background-color: #1e293b;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      color: #ffffff;
+    }
+    .light-mode .card-bg {
+      background-color: #ffffff;
+      color: #000000;
+    }
+    .button-primary {
+      background-color: #3b82f6;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+    .button-primary:hover {
+      background-color: #2563eb;
+    }
+    .button-secondary {
+      background-color: #475569;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+    .button-secondary:hover {
+      background-color: #64748b;
+    }
+    .light-mode .button-secondary {
+      background-color: #e5e7eb;
+      color: #1f2937;
+    }
+    .light-mode .button-secondary:hover {
+      background-color: #d1d5db;
+    }
+    .input-field {
+      background-color: #334155;
+      border: 1px solid #475569;
+      color: #ffffff;
+      border-radius: 4px;
+      padding: 8px;
+    }
+    .light-mode .input-field {
+      background-color: #ffffff;
+      border-color: #e5e7eb;
+      color: #1f2937;
+    }
+    .input-field:focus {
+      outline: none;
+      border-color: #3b82f6;
+    }
+    /* Logo styling */
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-text {
+      font-family: 'Cinzel', serif;
+      font-size: 32px;
+      font-weight: bold;
+      background: linear-gradient(90deg, #3b82f6, #1e3a8a);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: #ffffff;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    /* Logo circle with gradient background */
+    .logo-circle {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(90deg, #3b82f6, #1e3a8a);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .logo-circle span {
+      color: white;
+      font-weight: bold;
+      font-size: 20px;
+      font-family: 'Cinzel', serif;
+    }
+    /* Navigation links with solid color */
+    .nav-link {
+      color: #3b82f6; /* Solid blue color */
+      text-decoration: none;
+      transition: opacity 0.3s ease;
+    }
+    .nav-link:hover {
+      opacity: 0.8;
+      text-decoration: underline;
+    }
+    /* Fix for Rules and Missions sections in light mode */
+    .light-mode .bg-gray-800 {
+      background-color: #f3f4f6;
+      color: #000000;
+    }
+    .light-mode .bg-gray-800 h3,
+    .light-mode .bg-gray-800 p {
+      color: #000000;
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-900 light-mode">
+  <!-- Header and Navigation -->
+  <header class="header-gradient p-4">
+    <div class="flex items-center">
+      <div class="logo">
+        <!-- Logo with gradient background -->
+        <div class="logo-circle">
+          <span>S</span>
+        </div>
+        <span class="logo-text">SelfQuest</span>
+      </div>
+    </div>
+    <nav class="mt-2">
+      <ul class="flex space-x-4">
+        <li><a href="#level" data-page="level" class="nav-link">Level</a></li>
+        <li><a href="#skills" data-page="skills" class="nav-link">Skills</a></li>
+        <li><a href="#missions" data-page="missions" class="nav-link">Missions</a></li>
+        <li><a href="#rules" data-page="rules" class="nav-link">Rules</a></li>
+        <li><a href="#profile" data-page="profile" class="nav-link">Profile</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main class="p-6">
+    <!-- Level Section -->
+    <section id="level" class="page active">
+      <h2 class="text-2xl font-bold mb-4">Level Progress</h2>
+      <div class="card-bg p-6">
+        <h3 id="display-name" class="text-xl font-semibold">John Doe</h3>
+        <div class="level-bar flex mt-4">
+          <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+        </div>
+        <p id="current-level" class="mt-4">Level: 1</p>
+        <p id="exp-result" class="mt-4 text-lg font-semibold">EXP: 0 / 10000</p>
+
+        <div class="grid grid-cols-2 gap-4 mt-6">
+          <div>
+            <label>🍎 Food (kcal):</label>
+            <input type="number" id="food-input" class="input-field w-full" placeholder="Enter calories">
+          </div>
+          <div>
+            <label>🎮 Entertainment (hours):</label>
+            <input type="number" id="entertainment-input" class="input-field w-full" placeholder="Enter hours">
+          </div>
+          <div>
+            <label>🏋️ Sports:</label>
+            <select id="sports-input" class="input-field w-full">
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </div>
+          <div>
+            <label>💻 Work (hours):</label>
+            <input type="number" id="work-input" class="input-field w-full" placeholder="Enter hours">
+          </div>
+          <div>
+            <label>💧 Water Intake:</label>
+            <div id="water-input" class="flex space-x-2 mt-2">
+              <input type="checkbox" value="0.5" class="water-box"> <input type="checkbox" value="0.5" class="water-box"> <input type="checkbox" value="0.5" class="water-box"> <input type="checkbox" value="0.5" class="water-box">
+              <input type="checkbox" value="0.5" class="water-box"> <input type="checkbox" value="0.5" class="water-box"> <input type="checkbox" value="0.5" class="water-box"> <input type="checkbox" value="0.5" class="water-box">
+            </div>
+          </div>
+        </div>
+        <button id="calculate-points" class="button-primary mt-4 w-full py-2 px-4 rounded">Calculate Points</button>
+      </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills" class="page">
+      <h2 class="text-2xl font-bold mb-4">Skills</h2>
+      <div class="card-bg p-6">
+        <div class="flex items-center mb-4">
+          <span class="mr-4">🤝 Social Skills</span>
+          <div class="skill-bar flex flex-1" id="social-skills-bar">
+            <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+          </div>
+        </div>
+        <div class="flex items-center mb-4">
+          <span class="mr-4">📘 Knowledge</span>
+          <div class="skill-bar flex flex-1" id="knowledge-bar">
+            <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+          </div>
+        </div>
+        <div class="flex items-center mb-4">
+          <span class="mr-4">🏋️ Athleticism</span>
+          <div class="skill-bar flex flex-1" id="athleticism-bar">
+            <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+          </div>
+        </div>
+        <div class="flex items-center">
+          <span class="mr-4">🎨 Individual Skill</span>
+          <div class="skill-bar flex flex-1" id="individual-skill-bar">
+            <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Missions Section -->
+    <section id="missions" class="page">
+      <h2 class="text-2xl font-bold mb-4">Missions</h2>
+      <div class="card-bg p-6">
+        <!-- Current Mission -->
+        <div class="mb-6">
+          <h3 class="text-xl font-semibold mb-2">Personal Mission</h3>
+          <div class="flex items-center justify-between bg-gray-800 p-4 rounded-lg">
+            <p id="current-mission" class="text-lg">No mission set for this week.</p>
+            <input type="checkbox" id="complete-mission" class="w-6 h-6">
+          </div>
+        </div>
+
+        <!-- Missions Table -->
+        <h3 class="text-xl font-semibold mb-4">Weekly Missions</h3>
+        <table class="w-full border-collapse">
+          <thead>
+            <tr class="bg-gray-800">
+              <th class="border p-2">Week</th>
+              <th class="border p-2">Mission</th>
+              <th class="border p-2">Type</th>
+              <th class="border p-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="missions-table-body">
+            <!-- Rows will be added dynamically -->
+          </tbody>
+        </table>
+        <button id="add-mission" class="button-primary mt-4 w-full py-2 px-4 rounded">Add New Mission</button>
+      </div>
+    </section>
+
+    <!-- Rules Section -->
+    <section id="rules" class="page">
+      <h2 class="text-2xl font-bold mb-4">Rules</h2>
+      <div class="card-bg p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-gray-800 p-4 rounded-lg">
+            <h3 class="text-lg font-semibold mb-2">🍎 Food</h3>
+            <p>1000 kcal = 100 EXP (max 300 EXP).</p>
+          </div>
+          <div class="bg-gray-800 p-4 rounded-lg">
+            <h3 class="text-lg font-semibold mb-2">🎮 Entertainment</h3>
+            <p>Start with 500 EXP, lose 100 EXP per hour.</p>
+          </div>
+          <div class="bg-gray-800 p-4 rounded-lg">
+            <h3 class="text-lg font-semibold mb-2">🏋️ Sports</h3>
+            <p>Active (Yes) = +200 EXP, Inactive (No) = -50 EXP.</p>
+          </div>
+          <div class="bg-gray-800 p-4 rounded-lg">
+            <h3 class="text-lg font-semibold mb-2">💻 Work</h3>
+            <p>+100 EXP per hour.</p>
+          </div>
+          <div class="bg-gray-800 p-4 rounded-lg">
+            <h3 class="text-lg font-semibold mb-2">💧 Water</h3>
+            <p>Drink 2.5L (5 boxes) = +50 EXP; every box above adds +10 EXP. Less = -50 EXP.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Profile Section -->
+    <section id="profile" class="page">
+      <h2 class="text-2xl font-bold mb-4">Profile</h2>
+      <div class="card-bg p-6">
+        <label class="block mb-2">Name:<input type="text" id="name" value="John Doe" class="input-field w-full" disabled></label>
+        <label class="block mb-2">Age:<input type="number" id="age" value="25" class="input-field w-full" disabled></label>
+        <label class="block mb-2">Height (cm):<input type="number" id="height" value="180" class="input-field w-full" disabled></label>
+        <label class="block mb-2">Weight (kg):<input type="number" id="weight" value="75" class="input-field w-full" disabled></label>
+        <label class="block mb-2">Status:<input type="text" id="status" value="Active" class="input-field w-full" disabled></label>
+        <label class="block">Relationship Status:<input type="text" id="relationship" value="Single" class="input-field w-full" disabled></label>
+        <div class="flex space-x-4 mt-4">
+          <button id="edit-profile" class="button-primary py-2 px-4 rounded">Edit</button>
+          <button id="save-profile" class="button-secondary py-2 px-4 rounded hidden">Save</button>
+          <button id="toggle-dark-mode" class="button-secondary py-2 px-4 rounded">Toggle Dark Mode</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-800 text-white p-4 text-center">
+    <p>© 2025 SelfQuest. All rights reserved.</p>
+  </footer>
+
+  <!-- Add Mission Modal -->
+  <div id="add-mission-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center">
+    <div class="card-bg p-6 rounded-lg w-96">
+      <h3 class="text-xl font-semibold mb-4">Add New Mission</h3>
+      <label class="block mb-2">Mission Description:
+        <input type="text" id="mission-description" class="input-field w-full" placeholder="Enter mission description">
+      </label>
+      <label class="block mb-4">Mission Type:
+        <select id="mission-type" class="input-field w-full">
+          <option value="Social Skills">Social Skills</option>
+          <option value="Knowledge">Knowledge</option>
+          <option value="Athleticism">Athleticism</option>
+          <option value="Individual Skill">Individual Skill</option>
+        </select>
+      </label>
+      <div class="flex justify-end space-x-4">
+        <button id="cancel-mission" class="button-secondary py-2 px-4 rounded">Cancel</button>
+        <button id="save-mission" class="button-primary py-2 px-4 rounded">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Navigation logic
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetPage = e.target.dataset.page;
+
+        document.querySelectorAll('.page').forEach(page => {
+          page.classList.remove('active');
+        });
+
+        document.getElementById(targetPage).classList.add('active');
+      });
+    });
+
+    // Profile logic
+    const profileFields = ['name', 'age', 'height', 'weight', 'status', 'relationship'];
+    const editButton = document.getElementById('edit-profile');
+    const saveButton = document.getElementById('save-profile');
+
+    function loadProfile() {
+      profileFields.forEach(field => {
+        const input = document.getElementById(field);
+        const savedValue = localStorage.getItem(field);
+        if (savedValue !== null) {
+          input.value = savedValue;
+        }
+      });
+      document.getElementById('display-name').textContent = localStorage.getItem('name') || 'John Doe';
+    }
+
+    function toggleProfileEdit(state) {
+      profileFields.forEach(field => {
+        document.getElementById(field).disabled = !state;
+      });
+      editButton.classList.toggle('hidden', state);
+      saveButton.classList.toggle('hidden', !state);
+    }
+
+    editButton.addEventListener('click', () => toggleProfileEdit(true));
+
+    saveButton.addEventListener('click', () => {
+      profileFields.forEach(field => {
+        const input = document.getElementById(field);
+        localStorage.setItem(field, input.value);
+      });
+      loadProfile();
+      toggleProfileEdit(false);
+      alert('Profile saved!');
+    });
+
+    // Load profile on page load
+    window.addEventListener('load', loadProfile);
+
+    // Level calculation
+    document.getElementById('calculate-points').addEventListener('click', () => {
+      let exp = 0;
+
+      // Food calculation
+      const food = parseInt(document.getElementById('food-input').value) || 0;
+      exp += Math.min(Math.floor(food / 1000) * 100, 300);
+
+      // Entertainment calculation
+      const entertainment = parseInt(document.getElementById('entertainment-input').value) || 0;
+      exp += Math.max(500 - entertainment * 100, 0);
+
+      // Sports calculation
+      const sports = document.getElementById('sports-input').value;
+      exp += sports === 'yes' ? 200 : -50;
+
+      // Work calculation
+      const work = parseInt(document.getElementById('work-input').value) || 0;
+      exp += work * 100;
+
+      // Water calculation
+      const waterBoxes = document.querySelectorAll('.water-box:checked').length;
+      if (waterBoxes >= 5) {
+        exp += 50 + (waterBoxes - 5) * 10;
+      } else {
+        exp -= 50;
+      }
+
+      // Display the result
+      document.getElementById('exp-result').textContent = `EXP: ${exp} / 10000`;
+
+      // Update level
+      const level = Math.min(Math.floor(exp / 1000) + 1, 10);
+      document.getElementById('current-level').textContent = `Level: ${level}`;
+
+      // Update progress bar
+      const filledBars = Math.min(Math.floor(exp / 1000), 10);
+      const levelBar = document.querySelector('.level-bar').children;
+      for (let i = 0; i < 10; i++) {
+        levelBar[i].classList.toggle('filled', i < filledBars);
+      }
+    });
+
+    // Missions logic
+    const missionsTableBody = document.getElementById('missions-table-body');
+    const addMissionButton = document.getElementById('add-mission');
+    const currentMissionDisplay = document.getElementById('current-mission');
+    const completeMissionCheckbox = document.getElementById('complete-mission');
+
+    let missions = JSON.parse(localStorage.getItem('missions')) || [];
+    let currentWeek = 1;
+
+    function saveMissions() {
+      localStorage.setItem('missions', JSON.stringify(missions));
+    }
+
+    function renderMissions() {
+      missionsTableBody.innerHTML = '';
+      missions.forEach((mission, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="border p-2">Week ${mission.week}</td>
+          <td class="border p-2">${mission.mission}</td>
+          <td class="border p-2">${mission.type}</td>
+          <td class="border p-2">
+            <button onclick="editMission(${index})" class="button-secondary py-1 px-2 rounded">Edit</button>
+            <button onclick="deleteMission(${index})" class="button-primary py-1 px-2 rounded">Delete</button>
+          </td>
+        `;
+        missionsTableBody.appendChild(row);
+      });
+
+      // Update current mission
+      const currentMission = missions.find(mission => mission.week === currentWeek);
+      if (currentMission) {
+        currentMissionDisplay.textContent = currentMission.mission;
+        completeMissionCheckbox.checked = currentMission.completed || false;
+        currentMissionDisplay.classList.toggle('completed', currentMission.completed);
+      } else {
+        currentMissionDisplay.textContent = 'No mission set for this week.';
+        completeMissionCheckbox.checked = false;
+        currentMissionDisplay.classList.remove('completed');
+      }
+    }
+
+    // Add Mission Modal Logic
+    const addMissionModal = document.getElementById('add-mission-modal');
+    const missionDescriptionInput = document.getElementById('mission-description');
+    const missionTypeInput = document.getElementById('mission-type');
+    const saveMissionButton = document.getElementById('save-mission');
+    const cancelMissionButton = document.getElementById('cancel-mission');
+
+    addMissionButton.addEventListener('click', () => {
+      missionDescriptionInput.value = '';
+      missionTypeInput.value = 'Social Skills'; // Default selection
+      addMissionModal.classList.remove('hidden');
+    });
+
+    cancelMissionButton.addEventListener('click', () => {
+      addMissionModal.classList.add('hidden');
+    });
+
+    saveMissionButton.addEventListener('click', () => {
+      const mission = missionDescriptionInput.value.trim();
+      const type = missionTypeInput.value;
+
+      if (mission) {
+        const week = missions.length + 1;
+        missions.push({ week, mission, type, completed: false });
+        saveMissions();
+        renderMissions();
+        addMissionModal.classList.add('hidden');
+      } else {
+        alert('Please enter a mission description.');
+      }
+    });
+
+    function editMission(index) {
+      const mission = missions[index];
+      const newMission = prompt('Edit the mission for Week ' + mission.week, mission.mission);
+      if (newMission) {
+        mission.mission = newMission;
+        saveMissions();
+        renderMissions();
+      }
+    }
+
+    function deleteMission(index) {
+      if (confirm('Are you sure you want to delete this mission?')) {
+        missions.splice(index, 1);
+        saveMissions();
+        renderMissions();
+      }
+    }
+
+    completeMissionCheckbox.addEventListener('change', () => {
+      const currentMission = missions.find(mission => mission.week === currentWeek);
+      if (currentMission) {
+        currentMission.completed = completeMissionCheckbox.checked;
+        currentMissionDisplay.classList.toggle('completed', currentMission.completed);
+        saveMissions();
+
+        if (currentMission.completed) {
+          // Add 500 EXP
+          const expResult = document.getElementById('exp-result');
+          let exp = parseInt(expResult.textContent.split(' ')[1]) || 0;
+          exp += 500;
+          expResult.textContent = `EXP: ${exp} / 10000`;
+
+          // Add 1 skill point
+          const skillBar = document.getElementById(`${currentMission.type.toLowerCase().replace(' ', '-')}-bar`);
+          if (skillBar) {
+            const filledBars = skillBar.querySelectorAll('.filled').length;
+            if (filledBars < 10) {
+              skillBar.children[filledBars].classList.add('filled');
+            }
+          }
+        }
+      }
+    });
+
+    // Load missions on page load
+    window.addEventListener('load', () => {
+      renderMissions();
+    });
+
+    // Dark/Light Mode Toggle
+    const toggleDarkModeButton = document.getElementById('toggle-dark-mode');
+    toggleDarkModeButton.addEventListener('click', () => {
+      document.body.classList.toggle('light-mode');
+      toggleDarkModeButton.textContent = document.body.classList.contains('light-mode') ? 'Toggle Dark Mode' : 'Toggle Light Mode';
+    });
+  </script>
+</body>
+</html>
