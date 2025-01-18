@@ -457,6 +457,9 @@
       for (let i = 0; i < 10; i++) {
         levelBar[i].classList.toggle('filled', i < filledBars);
       }
+
+      // Save progress
+      localStorage.setItem('progress', JSON.stringify({ level, exp }));
     });
 
     // Missions logic
@@ -584,10 +587,31 @@
 
     // Dark/Light Mode Toggle
     const toggleDarkModeButton = document.getElementById('toggle-dark-mode');
+    const isLightMode = localStorage.getItem('lightMode') === 'true';
+
+    if (isLightMode) {
+      document.body.classList.add('light-mode');
+      toggleDarkModeButton.textContent = 'Toggle Dark Mode';
+    }
+
     toggleDarkModeButton.addEventListener('click', () => {
       document.body.classList.toggle('light-mode');
-      toggleDarkModeButton.textContent = document.body.classList.contains('light-mode') ? 'Toggle Dark Mode' : 'Toggle Light Mode';
+      const isLightModeNow = document.body.classList.contains('light-mode');
+      localStorage.setItem('lightMode', isLightModeNow);
+      toggleDarkModeButton.textContent = isLightModeNow ? 'Toggle Dark Mode' : 'Toggle Light Mode';
     });
+
+    // Load progress on page load
+    const progress = JSON.parse(localStorage.getItem('progress')) || { level: 1, exp: 0 };
+    document.getElementById('current-level').textContent = `Level: ${progress.level}`;
+    document.getElementById('exp-result').textContent = `EXP: ${progress.exp} / 10000`;
+
+    // Update progress bar
+    const filledBars = Math.min(Math.floor(progress.exp / 1000), 10);
+    const levelBar = document.querySelector('.level-bar').children;
+    for (let i = 0; i < 10; i++) {
+      levelBar[i].classList.toggle('filled', i < filledBars);
+    }
   </script>
 </body>
 </html>
