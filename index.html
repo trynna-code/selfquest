@@ -5,10 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MyMemoir</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Add Firebase CDN -->
-  <script src="https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.2.0/firebase-analytics.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js"></script>
   <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="shortcut icon" href="/favicon.ico" />
@@ -412,13 +408,18 @@
     </div>
   </div>
 
-  <script>
+  <script type="module">
+    // Import Firebase modules
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
     // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyCuPDDpJrGsnbVnEjJLCwpkWpiJuZT1qLw",
       authDomain: "mymemoir-17322.firebaseapp.com",
       projectId: "mymemoir-17322",
-      storageBucket: "mymemoir-17322.firebasestorage.app",
+      storageBucket: "mymemoir-17322.appspot.com",
       messagingSenderId: "758800645066",
       appId: "1:758800645066:web:8fbb2e17dd10e388a4ad33",
       measurementId: "G-50ZW2DMJG8"
@@ -426,9 +427,10 @@
 
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    // Welcome Page Logic
+    // DOM Elements
     const welcomePage = document.getElementById('welcome');
     const registerPage = document.getElementById('register');
     const mainContent = document.querySelector('main');
@@ -436,38 +438,42 @@
     const showLoginLink = document.getElementById('show-login');
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
+    const addMissionButton = document.getElementById('add-mission');
+    const addMissionModal = document.getElementById('add-mission-modal');
+    const cancelMissionButton = document.getElementById('cancel-mission');
+    const saveMissionButton = document.getElementById('save-mission');
+    const missionsTableBody = document.getElementById('missions-table-body');
 
+    // Show Register Page
     showRegisterLink.addEventListener('click', (e) => {
       e.preventDefault();
       welcomePage.classList.remove('active');
       registerPage.classList.add('active');
     });
 
+    // Show Login Page
     showLoginLink.addEventListener('click', (e) => {
       e.preventDefault();
       registerPage.classList.remove('active');
       welcomePage.classList.add('active');
     });
 
-    // Login with Firebase
+    // Login
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = document.getElementById('login-email').value;
       const password = document.getElementById('login-password').value;
 
       try {
-        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
         // Fetch user data from Firestore
-        const userDoc = await db.collection('users').doc(user.uid).get();
-        if (userDoc.exists) {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
           const userData = userDoc.data();
-          console.log('User data:', userData);
-
-          // Load user data into the UI
           loadProfile(userData.profile);
-          document.getElementById('welcome').classList.remove('active');
+          welcomePage.classList.remove('active');
           mainContent.classList.remove('hidden');
           document.getElementById('level').classList.add('active');
         } else {
@@ -478,7 +484,7 @@
       }
     });
 
-    // Register with Firebase
+    // Register
     registerForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = document.getElementById('register-email').value;
@@ -491,11 +497,11 @@
       }
 
       try {
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
         // Save user data to Firestore
-        await db.collection('users').doc(user.uid).set({
+        await setDoc(doc(db, 'users', user.uid), {
           email: email,
           profile: {
             name: 'John Doe',
@@ -524,7 +530,7 @@
       }
     });
 
-    // Load profile data
+    // Load Profile Data
     function loadProfile(profile) {
       document.getElementById('name').value = profile.name;
       document.getElementById('age').value = profile.age;
@@ -535,42 +541,72 @@
       document.getElementById('display-name').textContent = profile.name;
     }
 
-    // Save profile data
-    async function saveProfile() {
+    // Add Mission Modal
+    addMissionButton.addEventListener('click', () => {
+      addMissionModal.classList.remove('hidden');
+    });
+
+    cancelMissionButton.addEventListener('click', () => {
+      addMissionModal.classList.add('hidden');
+    });
+
+    saveMissionButton.addEventListener('click', async () => {
+      const missionDescription = document.getElementById('mission-description').value;
+      const missionType = document.getElementById('mission-type').value;
+
+      if (!missionDescription || !missionType) {
+        alert('Please fill out all fields.');
+        return;
+      }
+
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          await addDoc(collection(db, 'users', user.uid, 'missions'), {
+            description: missionDescription,
+            type: missionType,
+            completed: false
+          });
+          alert('Mission added successfully!');
+          addMissionModal.classList.add('hidden');
+        } else {
+          alert('User not logged in.');
+        }
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    // Load Missions
+    const loadMissions = async () => {
       const user = auth.currentUser;
-      if (!user) return;
+      if (user) {
+        const missionsRef = collection(db, 'users', user.uid, 'missions');
+        onSnapshot(missionsRef, (snapshot) => {
+          missionsTableBody.innerHTML = '';
+          snapshot.forEach((doc) => {
+            const mission = doc.data();
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td class="border p-2">${doc.id}</td>
+              <td class="border p-2">${mission.description}</td>
+              <td class="border p-2">${mission.type}</td>
+              <td class="border p-2">
+                <button class="button-primary py-1 px-2 rounded">Complete</button>
+              </td>
+            `;
+            missionsTableBody.appendChild(row);
+          });
+        });
+      }
+    };
 
-      const profile = {
-        name: document.getElementById('name').value,
-        age: document.getElementById('age').value,
-        height: document.getElementById('height').value,
-        weight: document.getElementById('weight').value,
-        status: document.getElementById('status').value,
-        relationship: document.getElementById('relationship').value
-      };
-
-      await db.collection('users').doc(user.uid).update({ profile });
-      alert('Profile saved!');
-    }
-
-    // Edit profile logic
-    const editButton = document.getElementById('edit-profile');
-    const saveButton = document.getElementById('save-profile');
-
-    editButton.addEventListener('click', () => {
-      document.querySelectorAll('#profile input').forEach(input => input.disabled = false);
-      editButton.classList.add('hidden');
-      saveButton.classList.remove('hidden');
+    // Initialize
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        loadMissions();
+      }
     });
-
-    saveButton.addEventListener('click', () => {
-      saveProfile();
-      document.querySelectorAll('#profile input').forEach(input => input.disabled = true);
-      editButton.classList.remove('hidden');
-      saveButton.classList.add('hidden');
-    });
-
-    // Rest of your existing JavaScript code
   </script>
 </body>
 </html>
