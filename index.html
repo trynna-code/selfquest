@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MyMemoir</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Add Firebase CDN -->
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js"></script>
   <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="shortcut icon" href="/favicon.ico" />
@@ -157,30 +161,76 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body class="bg-gray-100 text-gray-900 light-mode">
-  <!-- Header and Navigation -->
-  <header class="header-gradient p-4">
-    <div class="flex items-center">
-      <div class="logo">
-        <!-- Logo with gradient background -->
-        <div class="logo-circle">
-          <span>M</span>
-        </div>
-        <span class="logo-text">MyMemoir</span>
+  <!-- Welcome Page -->
+  <section id="welcome" class="page active">
+    <div class="flex items-center justify-center min-h-screen">
+      <div class="card-bg p-8 rounded-lg w-96">
+        <h2 class="text-2xl font-bold mb-6 text-center">Welcome to MyMemoir</h2>
+        <form id="login-form">
+          <div class="mb-4">
+            <label class="block mb-2">Email:</label>
+            <input type="email" id="login-email" class="input-field w-full" placeholder="Enter your email" required>
+          </div>
+          <div class="mb-6">
+            <label class="block mb-2">Password:</label>
+            <input type="password" id="login-password" class="input-field w-full" placeholder="Enter your password" required>
+          </div>
+          <button type="submit" class="button-primary w-full py-2 px-4 rounded">Login</button>
+        </form>
+        <p class="text-center mt-4">Don't have an account? <a href="#" id="show-register" class="nav-link">Register here</a></p>
       </div>
     </div>
-    <nav class="mt-2">
-      <ul class="flex space-x-4">
-        <li><a href="#level" data-page="level" class="nav-link">Level</a></li>
-        <li><a href="#skills" data-page="skills" class="nav-link">Skills</a></li>
-        <li><a href="#missions" data-page="missions" class="nav-link">Missions</a></li>
-        <li><a href="#rules" data-page="rules" class="nav-link">Rules</a></li>
-        <li><a href="#profile" data-page="profile" class="nav-link">Profile</a></li>
-      </ul>
-    </nav>
-  </header>
+  </section>
 
-  <!-- Main Content -->
-  <main class="p-6">
+  <!-- Registration Page -->
+  <section id="register" class="page">
+    <div class="flex items-center justify-center min-h-screen">
+      <div class="card-bg p-8 rounded-lg w-96">
+        <h2 class="text-2xl font-bold mb-6 text-center">Register</h2>
+        <form id="register-form">
+          <div class="mb-4">
+            <label class="block mb-2">Email:</label>
+            <input type="email" id="register-email" class="input-field w-full" placeholder="Enter your email" required>
+          </div>
+          <div class="mb-4">
+            <label class="block mb-2">Password:</label>
+            <input type="password" id="register-password" class="input-field w-full" placeholder="Enter your password" required>
+          </div>
+          <div class="mb-6">
+            <label class="block mb-2">Confirm Password:</label>
+            <input type="password" id="register-confirm-password" class="input-field w-full" placeholder="Confirm your password" required>
+          </div>
+          <button type="submit" class="button-primary w-full py-2 px-4 rounded">Register</button>
+        </form>
+        <p class="text-center mt-4">Already have an account? <a href="#" id="show-login" class="nav-link">Login here</a></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content (Hidden Initially) -->
+  <main class="p-6 hidden">
+    <!-- Header and Navigation -->
+    <header class="header-gradient p-4">
+      <div class="flex items-center">
+        <div class="logo">
+          <!-- Logo with gradient background -->
+          <div class="logo-circle">
+            <span>M</span>
+          </div>
+          <span class="logo-text">MyMemoir</span>
+        </div>
+      </div>
+      <nav class="mt-2">
+        <ul class="flex space-x-4">
+          <li><a href="#level" data-page="level" class="nav-link">Level</a></li>
+          <li><a href="#skills" data-page="skills" class="nav-link">Skills</a></li>
+          <li><a href="#missions" data-page="missions" class="nav-link">Missions</a></li>
+          <li><a href="#rules" data-page="rules" class="nav-link">Rules</a></li>
+          <li><a href="#profile" data-page="profile" class="nav-link">Profile</a></li>
+        </ul>
+      </nav>
+    </header>
+
     <!-- Level Section -->
     <section id="level" class="page active">
       <h2 class="text-2xl font-bold mb-4">Level Progress</h2>
@@ -363,255 +413,164 @@
   </div>
 
   <script>
-    // Navigation logic
-    document.querySelectorAll('.nav-link').forEach(link => {
-      link.addEventListener('click', (e) => {
-        e.preventDefault();
-        const targetPage = e.target.dataset.page;
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCuPDDpJrGsnbVnEjJLCwpkWpiJuZT1qLw",
+      authDomain: "mymemoir-17322.firebaseapp.com",
+      projectId: "mymemoir-17322",
+      storageBucket: "mymemoir-17322.firebasestorage.app",
+      messagingSenderId: "758800645066",
+      appId: "1:758800645066:web:8fbb2e17dd10e388a4ad33",
+      measurementId: "G-50ZW2DMJG8"
+    };
 
-        document.querySelectorAll('.page').forEach(page => {
-          page.classList.remove('active');
-        });
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
 
-        document.getElementById(targetPage).classList.add('active');
-      });
+    // Welcome Page Logic
+    const welcomePage = document.getElementById('welcome');
+    const registerPage = document.getElementById('register');
+    const mainContent = document.querySelector('main');
+    const showRegisterLink = document.getElementById('show-register');
+    const showLoginLink = document.getElementById('show-login');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+
+    showRegisterLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      welcomePage.classList.remove('active');
+      registerPage.classList.add('active');
     });
 
-    // Profile logic
-    const profileFields = ['name', 'age', 'height', 'weight', 'status', 'relationship'];
+    showLoginLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      registerPage.classList.remove('active');
+      welcomePage.classList.add('active');
+    });
+
+    // Login with Firebase
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+
+      try {
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+
+        // Fetch user data from Firestore
+        const userDoc = await db.collection('users').doc(user.uid).get();
+        if (userDoc.exists) {
+          const userData = userDoc.data();
+          console.log('User data:', userData);
+
+          // Load user data into the UI
+          loadProfile(userData.profile);
+          document.getElementById('welcome').classList.remove('active');
+          mainContent.classList.remove('hidden');
+          document.getElementById('level').classList.add('active');
+        } else {
+          alert('User data not found.');
+        }
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    // Register with Firebase
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('register-email').value;
+      const password = document.getElementById('register-password').value;
+      const confirmPassword = document.getElementById('register-confirm-password').value;
+
+      if (password !== confirmPassword) {
+        alert('Passwords do not match.');
+        return;
+      }
+
+      try {
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+
+        // Save user data to Firestore
+        await db.collection('users').doc(user.uid).set({
+          email: email,
+          profile: {
+            name: 'John Doe',
+            age: 25,
+            height: 180,
+            weight: 75,
+            status: 'Active',
+            relationship: 'Single'
+          },
+          progress: { level: 1, exp: 0 },
+          missions: [],
+          skills: {
+            socialSkills: 0,
+            knowledge: 0,
+            athleticism: 0,
+            individualSkill: 0
+          }
+        });
+
+        alert('Registration successful! Please login.');
+        registerForm.reset();
+        registerPage.classList.remove('active');
+        welcomePage.classList.add('active');
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+    // Load profile data
+    function loadProfile(profile) {
+      document.getElementById('name').value = profile.name;
+      document.getElementById('age').value = profile.age;
+      document.getElementById('height').value = profile.height;
+      document.getElementById('weight').value = profile.weight;
+      document.getElementById('status').value = profile.status;
+      document.getElementById('relationship').value = profile.relationship;
+      document.getElementById('display-name').textContent = profile.name;
+    }
+
+    // Save profile data
+    async function saveProfile() {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const profile = {
+        name: document.getElementById('name').value,
+        age: document.getElementById('age').value,
+        height: document.getElementById('height').value,
+        weight: document.getElementById('weight').value,
+        status: document.getElementById('status').value,
+        relationship: document.getElementById('relationship').value
+      };
+
+      await db.collection('users').doc(user.uid).update({ profile });
+      alert('Profile saved!');
+    }
+
+    // Edit profile logic
     const editButton = document.getElementById('edit-profile');
     const saveButton = document.getElementById('save-profile');
 
-    function loadProfile() {
-      profileFields.forEach(field => {
-        const input = document.getElementById(field);
-        const savedValue = localStorage.getItem(field);
-        if (savedValue !== null) {
-          input.value = savedValue;
-        }
-      });
-      document.getElementById('display-name').textContent = localStorage.getItem('name') || 'John Doe';
-    }
-
-    function toggleProfileEdit(state) {
-      profileFields.forEach(field => {
-        document.getElementById(field).disabled = !state;
-      });
-      editButton.classList.toggle('hidden', state);
-      saveButton.classList.toggle('hidden', !state);
-    }
-
-    editButton.addEventListener('click', () => toggleProfileEdit(true));
+    editButton.addEventListener('click', () => {
+      document.querySelectorAll('#profile input').forEach(input => input.disabled = false);
+      editButton.classList.add('hidden');
+      saveButton.classList.remove('hidden');
+    });
 
     saveButton.addEventListener('click', () => {
-      profileFields.forEach(field => {
-        const input = document.getElementById(field);
-        localStorage.setItem(field, input.value);
-      });
-      loadProfile();
-      toggleProfileEdit(false);
-      alert('Profile saved!');
+      saveProfile();
+      document.querySelectorAll('#profile input').forEach(input => input.disabled = true);
+      editButton.classList.remove('hidden');
+      saveButton.classList.add('hidden');
     });
 
-    // Load profile on page load
-    window.addEventListener('load', loadProfile);
-
-    // Level calculation
-    document.getElementById('calculate-points').addEventListener('click', () => {
-      let exp = 0;
-
-      // Food calculation
-      const food = parseInt(document.getElementById('food-input').value) || 0;
-      exp += Math.min(Math.floor(food / 1000) * 100, 300);
-
-      // Entertainment calculation
-      const entertainment = parseInt(document.getElementById('entertainment-input').value) || 0;
-      exp += Math.max(500 - entertainment * 100, 0);
-
-      // Sports calculation
-      const sports = document.getElementById('sports-input').value;
-      exp += sports === 'yes' ? 200 : -50;
-
-      // Work calculation
-      const work = parseInt(document.getElementById('work-input').value) || 0;
-      exp += work * 100;
-
-      // Water calculation
-      const waterBoxes = document.querySelectorAll('.water-box:checked').length;
-      if (waterBoxes >= 5) {
-        exp += 50 + (waterBoxes - 5) * 10;
-      } else {
-        exp -= 50;
-      }
-
-      // Display the result
-      document.getElementById('exp-result').textContent = `EXP: ${exp} / 10000`;
-
-      // Update level
-      const level = Math.min(Math.floor(exp / 1000) + 1, 10);
-      document.getElementById('current-level').textContent = `Level: ${level}`;
-
-      // Update progress bar
-      const filledBars = Math.min(Math.floor(exp / 1000), 10);
-      const levelBar = document.querySelector('.level-bar').children;
-      for (let i = 0; i < 10; i++) {
-        levelBar[i].classList.toggle('filled', i < filledBars);
-      }
-
-      // Save progress
-      localStorage.setItem('progress', JSON.stringify({ level, exp }));
-    });
-
-    // Missions logic
-    const missionsTableBody = document.getElementById('missions-table-body');
-    const addMissionButton = document.getElementById('add-mission');
-    const currentMissionDisplay = document.getElementById('current-mission');
-    const completeMissionCheckbox = document.getElementById('complete-mission');
-
-    let missions = JSON.parse(localStorage.getItem('missions')) || [];
-    let currentWeek = 1;
-
-    function saveMissions() {
-      localStorage.setItem('missions', JSON.stringify(missions));
-    }
-
-    function renderMissions() {
-      missionsTableBody.innerHTML = '';
-      missions.forEach((mission, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td class="border p-2">Week ${mission.week}</td>
-          <td class="border p-2">${mission.mission}</td>
-          <td class="border p-2">${mission.type}</td>
-          <td class="border p-2">
-            <button onclick="editMission(${index})" class="button-secondary py-1 px-2 rounded">Edit</button>
-            <button onclick="deleteMission(${index})" class="button-primary py-1 px-2 rounded">Delete</button>
-          </td>
-        `;
-        missionsTableBody.appendChild(row);
-      });
-
-      // Update current mission
-      const currentMission = missions.find(mission => mission.week === currentWeek);
-      if (currentMission) {
-        currentMissionDisplay.textContent = currentMission.mission;
-        completeMissionCheckbox.checked = currentMission.completed || false;
-        currentMissionDisplay.classList.toggle('completed', currentMission.completed);
-      } else {
-        currentMissionDisplay.textContent = 'No mission set for this week.';
-        completeMissionCheckbox.checked = false;
-        currentMissionDisplay.classList.remove('completed');
-      }
-    }
-
-    // Add Mission Modal Logic
-    const addMissionModal = document.getElementById('add-mission-modal');
-    const missionDescriptionInput = document.getElementById('mission-description');
-    const missionTypeInput = document.getElementById('mission-type');
-    const saveMissionButton = document.getElementById('save-mission');
-    const cancelMissionButton = document.getElementById('cancel-mission');
-
-    addMissionButton.addEventListener('click', () => {
-      missionDescriptionInput.value = '';
-      missionTypeInput.value = 'Social Skills'; // Default selection
-      addMissionModal.classList.remove('hidden');
-    });
-
-    cancelMissionButton.addEventListener('click', () => {
-      addMissionModal.classList.add('hidden');
-    });
-
-    saveMissionButton.addEventListener('click', () => {
-      const mission = missionDescriptionInput.value.trim();
-      const type = missionTypeInput.value;
-
-      if (mission) {
-        const week = missions.length + 1;
-        missions.push({ week, mission, type, completed: false });
-        saveMissions();
-        renderMissions();
-        addMissionModal.classList.add('hidden');
-      } else {
-        alert('Please enter a mission description.');
-      }
-    });
-
-    function editMission(index) {
-      const mission = missions[index];
-      const newMission = prompt('Edit the mission for Week ' + mission.week, mission.mission);
-      if (newMission) {
-        mission.mission = newMission;
-        saveMissions();
-        renderMissions();
-      }
-    }
-
-    function deleteMission(index) {
-      if (confirm('Are you sure you want to delete this mission?')) {
-        missions.splice(index, 1);
-        saveMissions();
-        renderMissions();
-      }
-    }
-
-    completeMissionCheckbox.addEventListener('change', () => {
-      const currentMission = missions.find(mission => mission.week === currentWeek);
-      if (currentMission) {
-        currentMission.completed = completeMissionCheckbox.checked;
-        currentMissionDisplay.classList.toggle('completed', currentMission.completed);
-        saveMissions();
-
-        if (currentMission.completed) {
-          // Add 500 EXP
-          const expResult = document.getElementById('exp-result');
-          let exp = parseInt(expResult.textContent.split(' ')[1]) || 0;
-          exp += 500;
-          expResult.textContent = `EXP: ${exp} / 10000`;
-
-          // Add 1 skill point
-          const skillBar = document.getElementById(`${currentMission.type.toLowerCase().replace(' ', '-')}-bar`);
-          if (skillBar) {
-            const filledBars = skillBar.querySelectorAll('.filled').length;
-            if (filledBars < 10) {
-              skillBar.children[filledBars].classList.add('filled');
-            }
-          }
-        }
-      }
-    });
-
-    // Load missions on page load
-    window.addEventListener('load', () => {
-      renderMissions();
-    });
-
-    // Dark/Light Mode Toggle
-    const toggleDarkModeButton = document.getElementById('toggle-dark-mode');
-    const isLightMode = localStorage.getItem('lightMode') === 'true';
-
-    if (isLightMode) {
-      document.body.classList.add('light-mode');
-      toggleDarkModeButton.textContent = 'Toggle Dark Mode';
-    }
-
-    toggleDarkModeButton.addEventListener('click', () => {
-      document.body.classList.toggle('light-mode');
-      const isLightModeNow = document.body.classList.contains('light-mode');
-      localStorage.setItem('lightMode', isLightModeNow);
-      toggleDarkModeButton.textContent = isLightModeNow ? 'Toggle Dark Mode' : 'Toggle Light Mode';
-    });
-
-    // Load progress on page load
-    const progress = JSON.parse(localStorage.getItem('progress')) || { level: 1, exp: 0 };
-    document.getElementById('current-level').textContent = `Level: ${progress.level}`;
-    document.getElementById('exp-result').textContent = `EXP: ${progress.exp} / 10000`;
-
-    // Update progress bar
-    const filledBars = Math.min(Math.floor(progress.exp / 1000), 10);
-    const levelBar = document.querySelector('.level-bar').children;
-    for (let i = 0; i < 10; i++) {
-      levelBar[i].classList.toggle('filled', i < filledBars);
-    }
+    // Rest of your existing JavaScript code
   </script>
 </body>
 </html>
